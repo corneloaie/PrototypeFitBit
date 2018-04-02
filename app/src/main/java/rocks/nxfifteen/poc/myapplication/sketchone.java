@@ -102,13 +102,14 @@ public class sketchone extends PApplet {
         //Need to get the minimum and maximum value out of ArrayList
         Collections.sort(distancelistsketchcrunch, Collections.reverseOrder());
         float overallMin = distancelistsketchcrunch.get(0);
-        float overallMax = distancelistsketchcrunch.get(distancelistsketchcrunch.size());
+        float overallMax = distancelistsketchcrunch.get(distancelistsketchcrunch.size() - 1);
 
+        positions = new PVector[distancelistsketchcrunch.size()];
         for (int i = 0; i < distancelistsketchcrunch.size(); i++) {
             float adjDistance = map(distancelistsketchcrunch.get(i), overallMin, overallMax, 0, graphHeight);
             float yPos = height - margin - adjDistance;
             float xPos = margin + (xSpacer * i);
-            positions = new PVector[distancelistsketchcrunch.size()];
+
             positions[i] = new PVector(xPos, yPos);
         }
     }
