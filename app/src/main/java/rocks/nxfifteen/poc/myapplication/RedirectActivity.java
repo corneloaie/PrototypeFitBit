@@ -56,29 +56,30 @@ public class RedirectActivity extends AppCompatActivity {
         if (returnUrl != null) {
 
             //this allows you to use all the methods in the helper class - request token with code
-            NxFitbitHelper fitbit = new NxFitbitHelper();
-            fitbit.requestAccessTokenFromIntent(returnUrl);
+            this.nxFitbitHelper = new NxFitbitHelper();
+            this.nxFitbitHelper.requestAccessTokenFromIntent(returnUrl);
 
             //get user profile using helper function
             try {
-                JSONObject responseProfile = fitbit.getUserProfile();
+                JSONObject responseProfile = this.nxFitbitHelper.getUserProfile();
                 Log.d(TAG, "From JSON encodedId: " + responseProfile.getJSONObject("user").getString("encodedId"));
                 Log.d(TAG, "From JSON fullName: " + responseProfile.getJSONObject("user").getString("fullName"));
 
-                JSONObject weightprofile = fitbit.getWeight();
+                JSONObject weightprofile = this.nxFitbitHelper.getWeight();
                 Log.d(TAG, "From JSON weight:  " + weightprofile.getJSONObject("user").getString("weight"));
 
-                JSONObject activity2402Profile = fitbit.getActivity2402();
+                JSONObject activity2402Profile = this.nxFitbitHelper.getActivity2402();
                 Log.d(TAG, "From JSON distance 24/02:  " + activity2402Profile.getJSONArray("activities").getJSONObject(0).getString("distance"));
 
-                JSONObject activity2802Profile = fitbit.getActivity2802Test();
+                JSONObject activity2802Profile = this.nxFitbitHelper.getActivity2802Test();
                 Log.d(TAG, "From JSON duration 28/02:  " + activity2802Profile.getJSONArray("activities").getJSONObject(0).getString("duration"));
                 //Log.d(TAG, "From JSON moderateActive distance 28/02:  " + activity2802Profile.getJSONObject("goals").getString("distance"));
                 //Log.d(TAG, "From JSON moderateActive distance 28/02:  " + activity2802Profile.getJSONObject("summary").getJSONArray("distances").getJSONObject(4).getString("distance"));
 
-                JSONObject activitiesHeart2802 = fitbit.getHeart2802();
+                JSONObject activitiesHeart2802 = this.nxFitbitHelper.getHeart2802();
                 Log.d(TAG, "From JSON Heart Statistics from 28/02:  " + activitiesHeart2802.getJSONArray("activities-heart").getJSONObject(0).getJSONObject("value").getJSONArray("heartRateZones").getJSONObject(1).getString("name"));
                 Log.d(TAG, "From JSON Heart Statistics from 28/02:  " + activitiesHeart2802.getJSONArray("activities-heart").getJSONObject(0).getJSONObject("value").getJSONArray("heartRateZones").getJSONObject(1).getString("minutes"));
+                Log.d(TAG, "From JSON Heart Statistics from 28/02:  " + activitiesHeart2802.toString());
                 Log.d(TAG, "From JSON Heart Statistics from 28/02:  " + activitiesHeart2802.getJSONObject("activities-heart-intraday").getJSONArray("dataset").getJSONObject(0).getString("value"));
 
                 //parsing heartrate statistics to test EndPoint
@@ -96,7 +97,7 @@ public class RedirectActivity extends AppCompatActivity {
 
                 //Get Heart Rate Time Series for an Activity on a Particular Day
                 //STEP 1: get the Activity out
-                JSONObject jsonactivity2802 = fitbit.getActivity2802Test();
+                JSONObject jsonactivity2802 = this.nxFitbitHelper.getActivity2802Test();
                 JSONArray jsonactivity = jsonactivity2802.getJSONArray("activities");
                 String jsonactivitystring = jsonactivity.toString();
                 System.out.println("activity28/02 " + jsonactivitystring);
@@ -106,7 +107,8 @@ public class RedirectActivity extends AppCompatActivity {
                 //STEP 5: use this array in a processing sketch
 
                 //Parsing Activity Time Series to test EndPoint
-                JSONObject activityTimeSeriesDistancesMonth = fitbit.getDistances2802period1month();
+                JSONObject activityTimeSeriesDistancesMonth = this.nxFitbitHelper.getDistances2802period1month();
+                Log.d(TAG, "From JSON Heart Statistics from 28/02:  " + activityTimeSeriesDistancesMonth.toString());
                 JSONArray activityTimeSeriesDistances = activityTimeSeriesDistancesMonth.getJSONArray("activities-distance");
                 String distancestats = activityTimeSeriesDistances.toString();
                 data.setText(distancestats);
@@ -146,14 +148,14 @@ public class RedirectActivity extends AppCompatActivity {
             }
 
             // Query profile variable directly
-            Log.d(TAG, "From class encodedId: " + fitbit.getFieldFromProfile("encodedId"));
-            Log.d(TAG, "From class fullName: " + fitbit.getFieldFromProfile("fullName"));
+            Log.d(TAG, "From class encodedId: " + this.nxFitbitHelper.getFieldFromProfile("encodedId"));
+            Log.d(TAG, "From class fullName: " + this.nxFitbitHelper.getFieldFromProfile("fullName"));
 
             // Query field Helper class
-            Log.d(TAG, "From helper class encodedId: " + fitbit.getFieldFrom("Profile", "encodedId"));
-            Log.d(TAG, "From helper class fullName: " + fitbit.getFieldFrom("Profile", "fullName"));
+            Log.d(TAG, "From helper class encodedId: " + this.nxFitbitHelper.getFieldFrom("Profile", "encodedId"));
+            Log.d(TAG, "From helper class fullName: " + this.nxFitbitHelper.getFieldFrom("Profile", "fullName"));
 
-            String name = fitbit.getFieldFrom("Profile", "fullName");
+            String name = this.nxFitbitHelper.getFieldFrom("Profile", "fullName");
             System.out.println("Name = " + name);
 
             // Get user activities by calling end point directly
@@ -162,7 +164,7 @@ public class RedirectActivity extends AppCompatActivity {
                 DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 Date date = new Date();
 
-                JSONObject responseProfile = fitbit.makeApiRequest("user/-/activities/date/" + dateFormat.format(date) + ".json");
+                JSONObject responseProfile = this.nxFitbitHelper.makeApiRequest("user/-/activities/date/" + dateFormat.format(date) + ".json");
                 Log.d(TAG, "steps: " + responseProfile.getJSONObject("summary").getString("steps"));
                 String number_steps = responseProfile.getJSONObject("summary").getString("steps");
                 System.out.println("Steps taken = " + number_steps);
@@ -177,14 +179,14 @@ public class RedirectActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-        } else {
-            Log.d(TAG, "Something is wrong with the return value from Fitbit. getIntent().getData() is NULL?");
-        }
+            FrameLayout frameLayout = new FrameLayout(this);
+            frameLayout.setId(R.id.SketchFrame);
+            sketch = new sketchone(nxFitbitHelper);
+            PFragment fragment = new PFragment(sketch);
+            fragment.setView(frameLayout,this);
 
-        FrameLayout frameLayout = new FrameLayout(this);
-        frameLayout.setId(R.id.SketchFrame);
-        sketch = new sketchone(nxFitbitHelper);
-        PFragment fragment = new PFragment(sketch);
-        fragment.setView(frameLayout,this);
+        } else {
+            Log.d(TAG, "Something is wrong with the return value from this.nxFitbitHelper. getIntent().getData() is NULL?");
+        }
     }
 }
